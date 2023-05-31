@@ -17,9 +17,15 @@ Plug 'VonHeikemen/lsp-zero.nvim', {'branch': 'v2.x'}
 Plug 'nvim-lua/plenary.nvim'
 Plug 'nvim-telescope/telescope.nvim', { 'tag': '0.1.1' }
 "theme"
+Plug 'shaunsingh/solarized.nvim'
+Plug 'catppuccin/nvim', { 'as': 'catppuccin' }
 Plug 'rose-pine/neovim'
+Plug 'NTBBloodbath/doom-one.nvim'
 "icons"
 Plug 'nvim-tree/nvim-web-devicons'
+Plug 'nvim-lualine/lualine.nvim'
+"work"
+Plug 'nvim-orgmode/orgmode'
 call plug#end()
 
 " SETTINGS "
@@ -60,6 +66,7 @@ nnoremap  § :vsp<CR>:lua vim.lsp.buf.definition()<CR>
 au FileType cpp  nnoremap  ` :!sh run.sh<CR>
 au FileType rust nnoremap  ` :!rustc code.rs && ./code<file.in<CR>
 nnoremap ff =G
+au FileType org nnoremap ff gqG
 nnoremap K :m -2<CR>
 nnoremap J :m +1<CR>
 vnoremap K :m -2<CR>gv=gv
@@ -109,18 +116,13 @@ lsp.on_attach(function(client, bufnr)
 end)
 require('lspconfig').lua_ls.setup(lsp.nvim_lua_ls())
 lsp.setup()
-
-
 local cmp = require('cmp')
-
 cmp.setup({
   preselect = 'item',
   completion = {
     completeopt = 'menu,menuone,noinsert'
   },
 })
-
-
 local cmp = require('cmp')
 local cmp_action = require('lsp-zero').cmp_action()
 cmp.setup({
@@ -128,7 +130,38 @@ cmp.setup({
     ['<TAB>'] = cmp.mapping.confirm({select = false}),
   }
 })
--- status line
+-- colorschemes
+require("catppuccin").setup {
+    custom_highlights = function(colors)
+        return {
+            Normal = {bg="#000000"},
+            StatusLine = {bg="#000000"},
+            CursorLine = {bg="#000000"},
+        }
+    end
+}
+require('rose-pine').setup{
+	disable_background = true,
+	disable_float_background = true,
+	highlight_groups = {
+		CursorLine = {bg='#000000'},
+		StatusLine = {bg='#000000'},
+	}
+}
+-- org-mode
+require('orgmode').setup_ts_grammar()
+require('nvim-treesitter.configs').setup {
+  highlight = {
+    enable = true,
+    additional_vim_regex_highlighting = {'org'},
+  },
+  ensure_installed = {'org'}, -- Or run :TSUpdate org
+}
+
+require('orgmode').setup({
+  org_agenda_files = {'~/Dropbox/org/*', '~/my-orgs/**/*'},
+  org_default_notes_file = '~/Dropbox/org/refile.org',
+})
 END
 
 " COMMENTS "
@@ -146,12 +179,17 @@ au FileType vim map \' :s/^"/<CR>
 " THEME ~ zellner "
 syntax on
 set background=dark
-colorscheme rose-pine
-hi Normal guibg=none
-hi CursorLine guibg=none
+colorscheme catppuccin
 
-" status line "
+"statusline"
 set statusline+=\ %F\ %M\ %R
 set statusline+=%=
 set statusline+=\ [\ %l\ :\ %c\ ]
-set statusline+=\ Lines:\ %L\ 
+function! GitBranch()
+    let branchname = substitute(system('git symbolic-ref HEAD 2> /dev/null'), 'refs/heads/', '', '')
+    return strlen(branchname) ? ' [' . branchname . ']' : ''
+endfunction
+set statusline+=%#warningmsg#
+set statusline+=%{GitBranch()}
+set statusline+=%{nr2char(0x609f)}
+set statusline+=%*
