@@ -17,15 +17,17 @@ Plug 'VonHeikemen/lsp-zero.nvim', {'branch': 'v2.x'}
 Plug 'nvim-lua/plenary.nvim'
 Plug 'nvim-telescope/telescope.nvim', { 'tag': '0.1.1' }
 "theme"
-Plug 'shaunsingh/solarized.nvim'
 Plug 'catppuccin/nvim', { 'as': 'catppuccin' }
 Plug 'rose-pine/neovim'
-Plug 'NTBBloodbath/doom-one.nvim'
+Plug 'ishan9299/nvim-solarized-lua'
+
 "icons"
 Plug 'nvim-tree/nvim-web-devicons'
 Plug 'nvim-lualine/lualine.nvim'
-"work"
-Plug 'nvim-orgmode/orgmode'
+Plug 'nvim-lua/plenary.nvim'
+Plug 'ThePrimeagen/harpoon'
+"commenter"
+Plug 'numToStr/Comment.nvim'
 call plug#end()
 
 " SETTINGS "
@@ -63,16 +65,24 @@ nnoremap fr :%s/
 vnoremap fr :s/
 nnoremap fa *
 nnoremap  § :vsp<CR>:lua vim.lsp.buf.definition()<CR>
-au FileType cpp  nnoremap  ` :!sh run.sh<CR>
-au FileType rust nnoremap  ` :!rustc code.rs && ./code<file.in<CR>
+nnoremap  gh :lua vim.lsp.buf.hover()<CR>
+" au FileType cpp  nnoremap  ` :!sh run.sh<CR>
+" au FileType rust nnoremap  ` :!rustc code.rs && ./code<file.in<CR>
 nnoremap ff =G
-au FileType org nnoremap ff gqG
 nnoremap K :m -2<CR>
 nnoremap J :m +1<CR>
 vnoremap K :m -2<CR>gv=gv
 vnoremap J :m'>+<CR>gv=gv
 vnoremap <BS> x
 map - $
+
+nnoremap <leader>+ :lua require("harpoon.mark").add_file()<CR>
+nnoremap <leader>l :lua require("harpoon.ui").toggle_quick_menu()<CR>
+nnoremap <leader>1 :lua require("harpoon.ui").nav_file(1)<CR>
+nnoremap <leader>2 :lua require("harpoon.ui").nav_file(2)<CR>
+nnoremap <leader>3 :lua require("harpoon.ui").nav_file(3)<CR>
+nnoremap <leader>4 :lua require("harpoon.ui").nav_file(4)<CR>
+nnoremap <leader>5 :lua require("harpoon.ui").nav_file(5)<CR>
 
 nnoremap <leader>ff <cmd>Telescope find_files<cr>
 nnoremap <leader>fg <cmd>Telescope live_grep<cr>
@@ -131,65 +141,110 @@ cmp.setup({
   }
 })
 -- colorschemes
-require("catppuccin").setup {
-    custom_highlights = function(colors)
-        return {
-            Normal = {bg="#000000"},
-            StatusLine = {bg="#000000"},
-            CursorLine = {bg="#000000"},
-        }
-    end
-}
 require('rose-pine').setup{
 	disable_background = true,
 	disable_float_background = true,
 	highlight_groups = {
-		CursorLine = {bg='#000000'},
-		StatusLine = {bg='#000000'},
 	}
 }
--- org-mode
-require('orgmode').setup_ts_grammar()
-require('nvim-treesitter.configs').setup {
-  highlight = {
-    enable = true,
-    additional_vim_regex_highlighting = {'org'},
-  },
-  ensure_installed = {'org'}, -- Or run :TSUpdate org
+--statusline
+local lualine = require('lualine')
+local conditions = {
+  buffer_not_empty = function()
+    return vim.fn.empty(vim.fn.expand('%:t')) ~= 1
+  end,
+  hide_in_width = function()
+    return vim.fn.winwidth(0) > 80
+  end,
+  check_git_workspace = function()
+    local filepath = vim.fn.expand('%:p:h')
+    local gitdir = vim.fn.finddir('.git', filepath .. ';')
+    return gitdir and #gitdir > 0 and #gitdir < #filepath
+  end,
 }
 
-require('orgmode').setup({
-  org_agenda_files = {'~/Dropbox/org/*', '~/my-orgs/**/*'},
-  org_default_notes_file = '~/Dropbox/org/refile.org',
-})
+local config = {
+  options = {
+    component_separators = '|',
+    section_separators = '|',
+  },
+  sections = {
+    lualine_a = {},
+    lualine_b = {},
+    lualine_y = {},
+    lualine_z = {},
+    lualine_c = {},
+    lualine_x = {},
+  },
+  inactive_sections = {
+    lualine_a = {},
+    lualine_b = {},
+    lualine_y = {},
+    lualine_z = {},
+    lualine_c = {},
+    lualine_x = {},
+  },
+}
+local function ins_left(component)
+  table.insert(config.sections.lualine_c, component)
+end
+local function ins_right(component)
+  table.insert(config.sections.lualine_x, component)
+end
+
+ins_left {
+  '%F',
+  cond = conditions.buffer_not_empty,
+}
+
+ins_left { 'location' }
+
+ins_left {
+  function()
+    return '%='
+  end,
+}
+
+ins_left {
+  function()
+    local msg = 'No Active Lsp'
+    local buf_ft = vim.api.nvim_buf_get_option(0, 'filetype')
+    local clients = vim.lsp.get_active_clients()
+    if next(clients) == nil then
+      return msg
+    end
+    for _, client in ipairs(clients) do
+      local filetypes = client.config.filetypes
+      if filetypes and vim.fn.index(filetypes, buf_ft) ~= -1 then
+        return client.name
+      end
+    end
+    return msg
+  end,
+  icon = 'LSP:',
+}
+
+ins_left {
+  'diagnostics',
+  sources = { 'nvim_diagnostic' },
+  symbols = { error = ' ', warn = ' ', info = ' ' },
+}
+
+ins_right {
+  'branch',
+}
+
+ins_right {
+  'diff',
+  symbols = { added = '+ ', modified = '~ ', removed = '- ' },
+  cond = conditions.hide_in_width,
+}
+lualine.setup(config)
+--commenter
+require('Comment').setup()
 END
 
-" COMMENTS "
-au FileType cpp map \; :s/^/\/\/<CR>/§<CR>
-au FileType cpp map \' :s/^\/\//<CR>
-au FileType c map \; :s/^/\/\/<CR>/§<CR>
-au FileType c map \' :s/^\/\//<CR>
-au FileType rust map \; :s/^/\/\/<CR>/§<CR>
-au FileType rust map \' :s/^\/\//<CR>
-au FileType python map \; :s/^/#<CR>/§<CR>
-au FileType python map \' :s/^#/<CR>
-au FileType vim map \; :s/^/"<CR>/§<CR>
-au FileType vim map \' :s/^"/<CR>
-
-" THEME ~ zellner "
+" THEME ~ rose-pine "
 syntax on
 set background=dark
-colorscheme catppuccin
-
-"statusline"
-set statusline+=\ %F\ %M\ %R
-set statusline+=%=
-set statusline+=\ [\ %l\ :\ %c\ ]
-function! GitBranch()
-    let branchname = substitute(system('git symbolic-ref HEAD 2> /dev/null'), 'refs/heads/', '', '')
-    return strlen(branchname) ? ' [' . branchname . ']' : ''
-endfunction
-set statusline+=%#warningmsg#
-set statusline+=%{GitBranch()}
-set statusline+=%{nr2char(0x609f)}
-set statusline+=%*
+colorscheme rose-pine
