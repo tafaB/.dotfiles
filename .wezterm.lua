@@ -3,13 +3,13 @@ local config = {}
 if wezterm.config_builder then
   config = wezterm.config_builder()
 end
-config.color_scheme = 'Desert'
+config.color_scheme = 'Default (light) (terminal.sexy)'
 config.colors = {
-    background="#000000";
-    cursor_fg="#000000";
-    cursor_bg="#ffffff";
+    background="#faf2eb";
+    cursor_bg="#000000";
+    cursor_fg="#ffffff";
 }
-config.font_size = 20
+config.font_size = 15
 config.tab_bar_at_bottom = true
 config.use_fancy_tab_bar = false
 config.keys = {

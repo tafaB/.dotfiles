@@ -22,4 +22,4 @@ function git_branch_name()
 }
 autoload -U colors && colors
 setopt prompt_subst
-PS1='%F{#ffffff}[%n@ %1~]%F{red}$(git_branch_name)%f%F{#ffffff}$%f '
+PS1='%F{#000000}[%n@ %1~]%F{red}$(git_branch_name)%f%F{#000000}$%f '
