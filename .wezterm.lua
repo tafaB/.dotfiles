@@ -3,14 +3,15 @@ local config = {}
 if wezterm.config_builder then
   config = wezterm.config_builder()
 end
-config.color_scheme = 'dirtysea (base16)'
+config.color_scheme = 'Desert'
 config.colors = {
-    background="#ffffff";
+    background="#000000";
+    cursor_fg="#000000";
+    cursor_bg="#ffffff";
 }
 config.font_size = 20
 config.tab_bar_at_bottom = true
 config.use_fancy_tab_bar = false
-config.force_reverse_video_cursor = true
 config.keys = {
   {
     key = 'Enter',
