@@ -1,3 +1,1 @@
---------------
-| DEV CONFIG |
---------------
+zsh + wezterm + vim

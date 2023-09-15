@@ -1,7 +1,8 @@
 " PLUGINS "
 call plug#begin('~/.config/nvim/plugged')
 " colorscheme
-Plug 'Verf/deepwhite.nvim'
+Plug 'blazkowolf/gruber-darker.nvim'
+Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 " LSP Support
 Plug 'neovim/nvim-lspconfig'                           " Required
 Plug 'williamboman/mason.nvim', {'do': ':MasonUpdate'} " Optional
@@ -19,6 +20,7 @@ Plug 'nvim-lua/plenary.nvim'
 Plug 'ThePrimeagen/harpoon'
 "commenter"
 Plug 'numToStr/Comment.nvim'
+Plug 'stevearc/conform.nvim'
 call plug#end()
 
 " SETTINGS "
@@ -57,7 +59,7 @@ vnoremap fr :s/
 nnoremap fa *
 nnoremap  § :vsp<CR>:lua vim.lsp.buf.definition()<CR>
 nnoremap  gh :lua vim.lsp.buf.hover()<CR>
-nnoremap ff =G
+nnoremap ff :lua vim.lsp.buf.format({async=false})<CR>
 nnoremap K :m -2<CR>
 nnoremap J :m +1<CR>
 vnoremap K :m -2<CR>gv=gv
@@ -96,6 +98,14 @@ vnoremap <Left> <Nop>
 vnoremap <Right> <Nop>
 vnoremap <Up> <Nop>
 lua << END
+-- color correction
+require'nvim-treesitter.configs'.setup {
+  ensure_installed = { "c", "rust" },
+  auto_install = true,
+  highlight = {
+    enable = true,
+  },
+}
 -- lsp
 local lsp = require('lsp-zero').preset({})
 lsp.on_attach(function(client, bufnr)
@@ -122,6 +132,10 @@ mapping = {
 }
 })
 --statusline
+vim.cmd("hi InfoHighlight guibg=#282828 guifg=#73d936");
+vim.cmd("hi HintHighlight guibg=#282828 guifg=#9e95c7");
+vim.cmd("hi WarningHighlight guibg=#282828 guifg=#ffdd33");
+vim.cmd("hi ErrorHighlight guibg=#282828 guifg=#f43841");
 local function lsp()
 local count = {}
 local levels = {
@@ -138,16 +152,16 @@ for k, level in pairs(levels) do
     local hints = ""
     local info = ""
     if count["errors"] >= 0 then
-        errors = " E:" .. count["errors"]
+        errors = " E:%#ErrorHighlight#" .. count["errors"] .."%*"
     end
     if count["warnings"] >= 0 then
-        warnings = " W:" .. count["warnings"]
+        warnings = " W:%#WarningHighlight#" .. count["warnings"] .."%*"
     end
     if count["hints"] >= 0 then
-        hints = " H:" .. count["hints"]
+        hints = " H:%#HintHighlight#" .. count["hints"] .."%*"
     end
     if count["info"] >= 0 then
-        info = " I:" .. count["info"]
+        info = " I:%#InfoHighlight#" .. count["info"] .."%*"
     end
     return errors .. warnings .. hints .. info .. " "
 end
@@ -195,4 +209,4 @@ END
 
 syntax on
 set background=light
-colorscheme deepwhite
+colorscheme gruber-darker
