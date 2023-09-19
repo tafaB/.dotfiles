@@ -32,6 +32,7 @@
 (global-set-key (kbd "M-b") 'bookmark-bmenu-list)
 (global-set-key (kbd "M-+") 'bookmark-set)
 ;; settings
+(setq mac-pass-command-to-system nil)
 (setq visible-bell nil)
 (setq ring-bell-function 'ignore)
 (global-set-key (kbd "M-c") 'compile)
