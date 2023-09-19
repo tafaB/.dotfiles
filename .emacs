@@ -35,6 +35,7 @@
 (setq visible-bell nil)
 (setq ring-bell-function 'ignore)
 (global-set-key (kbd "M-c") 'compile)
+(global-set-key (kbd "M-C") (lambda () (interactive) (setq current-prefix-arg '(4)) (call-interactively 'compile)))
 (global-auto-revert-mode t)
 (scroll-bar-mode -1)
 (tool-bar-mode -1)
