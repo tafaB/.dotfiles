@@ -1,7 +1,6 @@
 export PATH=/opt/homebrew/bin:$PATH
 source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
-alias emacs='open -a Emacs -n'
-alias ff="emacs \$(fzf --preview='less {}')"
+alias ff='find . -type f -name'
 alias fg='rg -i'
 alias vim='nvim'
 alias :wq='exit;'
