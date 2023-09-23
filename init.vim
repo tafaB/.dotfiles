@@ -1,7 +1,7 @@
 " PLUGINS "
 call plug#begin('~/.config/nvim/plugged')
 " colorscheme
-Plug 'blazkowolf/gruber-darker.nvim'
+Plug 'rose-pine/neovim'
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 " LSP Support
 Plug 'neovim/nvim-lspconfig'                           " Required
@@ -14,9 +14,6 @@ Plug 'VonHeikemen/lsp-zero.nvim', {'branch': 'v2.x'}
 " telescope "
 Plug 'nvim-lua/plenary.nvim'
 Plug 'nvim-telescope/telescope.nvim', { 'tag': '0.1.1' }
-"icons"
-Plug 'nvim-tree/nvim-web-devicons'
-Plug 'nvim-lua/plenary.nvim'
 Plug 'ThePrimeagen/harpoon'
 "commenter"
 Plug 'numToStr/Comment.nvim'
@@ -106,6 +103,13 @@ require'nvim-treesitter.configs'.setup {
     enable = true,
   },
 }
+-- colorscheme
+require('rose-pine').setup({
+	bold_vert_split = false,
+	disable_background = true,
+	disable_float_background = true,
+})
+vim.cmd('colorscheme rose-pine')
 -- lsp
 local lsp = require('lsp-zero').preset({})
 lsp.on_attach(function(client, bufnr)
@@ -206,7 +210,3 @@ vim.api.nvim_exec([[
 --commenter
 require('Comment').setup()
 END
-
-syntax on
-set background=light
-colorscheme gruber-darker
