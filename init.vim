@@ -34,7 +34,7 @@ set autoread
 set shell=/bin/zsh
 set laststatus=2
 set splitbelow
-set clipboard=unnamed
+set clipboard+=unnamedplus
 autocmd InsertEnter * set cul
 autocmd InsertLeave * set nocul
 
@@ -136,10 +136,10 @@ mapping = {
 }
 })
 --statusline
-vim.cmd("hi InfoHighlight guibg=#282828 guifg=#73d936");
-vim.cmd("hi HintHighlight guibg=#282828 guifg=#9e95c7");
-vim.cmd("hi WarningHighlight guibg=#282828 guifg=#ffdd33");
-vim.cmd("hi ErrorHighlight guibg=#282828 guifg=#f43841");
+vim.cmd("hi InfoHighlight guibg=#1f1d2e guifg=#73d936");
+vim.cmd("hi HintHighlight guibg=#1f1d2e guifg=#9e95c7");
+vim.cmd("hi WarningHighlight guibg=#1f1d2e guifg=#ffdd33");
+vim.cmd("hi ErrorHighlight guibg=#1f1d2e guifg=#f43841");
 local function lsp()
 local count = {}
 local levels = {
