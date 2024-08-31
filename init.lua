@@ -12,14 +12,9 @@ end
 vim.opt.rtp:prepend(lazypath)
 vim.g.mapleader = " "
 require("lazy").setup({
-  {'catppuccin/nvim' },
+  {'navarasu/onedark.nvim'},
   { 'github/copilot.vim' },
-  { 'nvim-treesitter/nvim-treesitter' },
-  { 'nvim-lua/plenary.nvim' },
-  { 'nvim-telescope/telescope.nvim' },
-  { 'ThePrimeagen/harpoon' },
   { 'numToStr/Comment.nvim' },
-  { 'tpope/vim-fugitive' },
   -- lsp
   { 'VonHeikemen/lsp-zero.nvim',        branch = 'v3.x' },
   { 'williamboman/mason.nvim' },
@@ -35,7 +30,6 @@ require("lazy").setup({
 })
 
 -- settings
-vim.cmd("set mouse=a")
 vim.cmd("set number")
 vim.cmd("set tabstop=2")
 vim.cmd("set shiftwidth=2")
@@ -43,11 +37,17 @@ vim.cmd("set expandtab")
 vim.cmd("set ruler")
 vim.cmd("set showcmd")
 vim.cmd("set autoread")
+vim.cmd("set autoindent")
 vim.cmd("set shell=/bin/zsh")
 vim.cmd("set splitbelow")
 vim.cmd("set clipboard+=unnamedplus")
+vim.cmd("set mouse=a")
 vim.cmd("set cursorline")
 vim.cmd("set laststatus=2")
+vim.cmd("set colorcolumn=80")
+vim.cmd("set list")
+vim.cmd("set listchars=tab:▸\\ ,eol:¬,trail:·")
+
 -- mappings
 vim.cmd("command! W w")
 vim.cmd("command! Q q")
@@ -64,26 +64,13 @@ vim.api.nvim_set_keymap('n', 'J', ':m +1<CR>', { noremap = true, silent = true }
 vim.api.nvim_set_keymap('x', 'K', ':m -2<CR>gv=gv', { noremap = true, silent = true })
 vim.api.nvim_set_keymap('x', 'J', ':m\'>+<CR>gv=gv', { noremap = true, silent = true })
 vim.api.nvim_set_keymap('x', '<BS>', 'x', { noremap = true, silent = true })
-vim.api.nvim_set_keymap('n', '<F12>', ':vsp<CR>:e .<CR>', { noremap = true, silent = true })
-
--- harpoon
-local mark = require("harpoon.mark")
-local ui = require("harpoon.ui")
-vim.keymap.set("n", "<leader>+", mark.add_file)
-vim.keymap.set("n", "<leader>l", ui.toggle_quick_menu)
-vim.keymap.set("n", "<leader>1", function() ui.nav_file(1) end)
-vim.keymap.set("n", "<leader>2", function() ui.nav_file(2) end)
-vim.keymap.set("n", "<leader>3", function() ui.nav_file(3) end)
-vim.keymap.set("n", "<leader>4", function() ui.nav_file(4) end)
-
--- treesitter
-require 'nvim-treesitter.configs'.setup {
-  ensure_installed = { "c", "rust" },
-  auto_install = true,
-  highlight = {
-    enable = true,
-  },
-}
+vim.api.nvim_set_keymap('n', '<Right>', ':bn<CR>', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<Left>', ':bp<CR>', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<Up>', ':buffers<CR>', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<Leader>k', '<C-W><Up>', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<Leader>l', '<C-W><Right>', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<Leader>h', '<C-W><Left>', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<Leader>j', '<C-W><Down>', { noremap = true, silent = true })
 
 -- commenter
 require('Comment').setup()
@@ -92,8 +79,9 @@ require('Comment').setup()
 local lsp_zero = require('lsp-zero')
 
 lsp_zero.on_attach(function(client, bufnr)
+  client.server_capabilities.semanticTokensProvider = nil
   local opts = { buffer = bufnr, remap = false, silent = true }
-  vim.keymap.set("n", "`", [[:vsp<CR>:lua vim.lsp.buf.definition()<CR>]], opts)
+  vim.keymap.set("n", "`", [[:sp<CR>:lua vim.lsp.buf.definition()<CR>]], opts)
   vim.keymap.set("n", "gh", function() vim.lsp.buf.hover() end, opts)
   lsp_zero.default_keymaps({ buffer = bufnr })
 end)
@@ -112,27 +100,26 @@ require('mason-lspconfig').setup({
 local cmp = require('cmp')
 require('luasnip.loaders.from_vscode').lazy_load()
 cmp.setup({
+  completion = {
+    autocomplete = false,
+  },
   mapping = cmp.mapping.preset.insert({
     ['<CR>'] = cmp.mapping.confirm({ select = true }),
+    ['<S-Tab>'] = cmp.mapping(function(fallback)
+      if cmp.visible() then
+        cmp.select_prev_item()
+      else
+        cmp.complete()
+      end
+    end, { 'i', 's' }),
+  }),
+  sources = cmp.config.sources({
+    { name = 'nvim_lsp' },
+    { name = 'luasnip' },
+    { name = 'buffer' },
+    { name = 'path' },
   }),
 })
 
---telescope
-local builtin = require('telescope.builtin')
-local themes = require('telescope.themes')
-local function set_telescope_mapping(key, command, theme)
-  vim.keymap.set('n', key, function()
-    command(theme)
-  end, { noremap = true, silent = true })
-end
-set_telescope_mapping('<leader>ff', builtin.find_files, themes.get_ivy())
-set_telescope_mapping('<leader>fg', builtin.live_grep, themes.get_ivy())
-set_telescope_mapping('<leader>fb', builtin.buffers, themes.get_ivy())
-set_telescope_mapping('<leader>fh', builtin.help_tags, themes.get_ivy())
-
--- colors
-require("catppuccin").setup({
-	transparent_background = true,
-})
-vim.cmd.colorscheme "catppuccin"
-vim.cmd("hi StatusLine guibg=#2a2b3c guifg=#cdd6f4")
+-- colorscheme
+vim.cmd("colorscheme onedark")
