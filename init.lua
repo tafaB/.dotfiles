@@ -5,17 +5,15 @@ if not vim.loop.fs_stat(lazypath) then
     "clone",
     "--filter=blob:none",
     "https://github.com/folke/lazy.nvim.git",
-    "--branch=stable", -- latest stable release
+    "--branch=stable",
     lazypath,
   })
 end
 vim.opt.rtp:prepend(lazypath)
 vim.g.mapleader = " "
 require("lazy").setup({
-  {'navarasu/onedark.nvim'},
-  { 'github/copilot.vim' },
+  { 'nvim-treesitter/nvim-treesitter' },
   { 'numToStr/Comment.nvim' },
-  -- lsp
   { 'VonHeikemen/lsp-zero.nvim',        branch = 'v3.x' },
   { 'williamboman/mason.nvim' },
   { 'williamboman/mason-lspconfig.nvim' },
@@ -29,7 +27,8 @@ require("lazy").setup({
   { 'rafamadriz/friendly-snippets' },
 })
 
--- settings
+vim.cmd.colorscheme("base16")
+
 vim.cmd("set number")
 vim.cmd("set tabstop=2")
 vim.cmd("set shiftwidth=2")
@@ -40,52 +39,55 @@ vim.cmd("set autoread")
 vim.cmd("set autoindent")
 vim.cmd("set shell=/bin/zsh")
 vim.cmd("set splitbelow")
-vim.cmd("set clipboard+=unnamedplus")
+vim.cmd("set clipboard=unnamedplus")
 vim.cmd("set mouse=a")
 vim.cmd("set cursorline")
 vim.cmd("set laststatus=2")
 vim.cmd("set colorcolumn=80")
+vim.cmd("set path+=**")
 vim.cmd("set list")
 vim.cmd("set listchars=tab:▸\\ ,eol:¬,trail:·")
 
--- mappings
 vim.cmd("command! W w")
 vim.cmd("command! Q q")
 vim.cmd("command! WQ wq")
 vim.cmd("command! Wq wq")
-vim.api.nvim_set_keymap('i', '{<CR>', '{<CR>}<Esc>O', { noremap = true, silent = true })
-vim.api.nvim_set_keymap('i', '{}', '{}<Esc>i', { noremap = true, silent = true })
-vim.api.nvim_set_keymap('i', '[]', '[]<Esc>i', { noremap = true, silent = true })
-vim.api.nvim_set_keymap('i', '()', '()<Esc>i', { noremap = true, silent = true })
-vim.api.nvim_set_keymap('i', '""', '""<Esc>i', { noremap = true, silent = true })
-vim.api.nvim_set_keymap('i', "''", "''<Esc>i", { noremap = true, silent = true })
-vim.api.nvim_set_keymap('n', 'K', ':m -2<CR>', { noremap = true, silent = true })
-vim.api.nvim_set_keymap('n', 'J', ':m +1<CR>', { noremap = true, silent = true })
-vim.api.nvim_set_keymap('x', 'K', ':m -2<CR>gv=gv', { noremap = true, silent = true })
-vim.api.nvim_set_keymap('x', 'J', ':m\'>+<CR>gv=gv', { noremap = true, silent = true })
-vim.api.nvim_set_keymap('x', '<BS>', 'x', { noremap = true, silent = true })
-vim.api.nvim_set_keymap('n', '<Right>', ':bn<CR>', { noremap = true, silent = true })
-vim.api.nvim_set_keymap('n', '<Left>', ':bp<CR>', { noremap = true, silent = true })
-vim.api.nvim_set_keymap('n', '<Up>', ':buffers<CR>', { noremap = true, silent = true })
-vim.api.nvim_set_keymap('n', '<Leader>k', '<C-W><Up>', { noremap = true, silent = true })
-vim.api.nvim_set_keymap('n', '<Leader>l', '<C-W><Right>', { noremap = true, silent = true })
-vim.api.nvim_set_keymap('n', '<Leader>h', '<C-W><Left>', { noremap = true, silent = true })
-vim.api.nvim_set_keymap('n', '<Leader>j', '<C-W><Down>', { noremap = true, silent = true })
 
--- commenter
-require('Comment').setup()
+vim.cmd("let g:netrw_banner=0")
+vim.cmd("let g:netrw_browse_split=3")
+vim.cmd("let g:netrw_altv=1")
+vim.cmd("let g:netrw_liststyle=3")
 
--- lsp
+local keymap = vim.keymap.set
+local opts = { noremap = true, silent = true }
+keymap('i', '{<CR>', '{<CR>}<Esc>O', opts);
+keymap('i', '{}', '{}<Esc>i', opts);
+keymap('i', '[]', '[]<Esc>i', opts);
+keymap('i', '()', '()<Esc>i', opts);
+keymap('i', '""', '""<Esc>i', opts);
+keymap('i', "''", "''<Esc>i", opts);
+keymap('n', 'K', ':m -2<CR>', opts);
+keymap('n', 'J', ':m +1<CR>', opts);
+keymap('x', 'K', ':m -2<CR>gv=gv', opts);
+keymap('x', 'J', ':m\'>+<CR>gv=gv', opts);
+keymap('n', '<Leader>k', '<C-W><Up>', opts);
+keymap('n', '<Leader>l', '<C-W><Right>', opts);
+keymap('n', '<Leader>h', '<C-W><Left>', opts);
+keymap('n', '<Leader>j', '<C-W><Down>', opts);
+keymap('n', '<Leader>t', ':tabnew %<CR>', opts);
+keymap('n', '<Leader>1', '1gt', opts);
+keymap('n', '<Leader>2', '2gt', opts);
+keymap('n', '<Leader>3', '3gt', opts);
+keymap('n', '<Leader>4', '4gt', opts);
+
 local lsp_zero = require('lsp-zero')
-
 lsp_zero.on_attach(function(client, bufnr)
   client.server_capabilities.semanticTokensProvider = nil
-  local opts = { buffer = bufnr, remap = false, silent = true }
-  vim.keymap.set("n", "`", [[:sp<CR>:lua vim.lsp.buf.definition()<CR>]], opts)
+  opts = { buffer = bufnr, remap = false, silent = true }
+  vim.keymap.set("n", "g<", [[:sp<CR>:lua vim.lsp.buf.definition()<CR>]], opts)
   vim.keymap.set("n", "gh", function() vim.lsp.buf.hover() end, opts)
   lsp_zero.default_keymaps({ buffer = bufnr })
 end)
-
 require('mason').setup({})
 require('mason-lspconfig').setup({
   handlers = {
@@ -96,23 +98,9 @@ require('mason-lspconfig').setup({
     end,
   }
 })
-
 local cmp = require('cmp')
 require('luasnip.loaders.from_vscode').lazy_load()
 cmp.setup({
-  completion = {
-    autocomplete = false,
-  },
-  mapping = cmp.mapping.preset.insert({
-    ['<CR>'] = cmp.mapping.confirm({ select = true }),
-    ['<S-Tab>'] = cmp.mapping(function(fallback)
-      if cmp.visible() then
-        cmp.select_prev_item()
-      else
-        cmp.complete()
-      end
-    end, { 'i', 's' }),
-  }),
   sources = cmp.config.sources({
     { name = 'nvim_lsp' },
     { name = 'luasnip' },
@@ -121,5 +109,12 @@ cmp.setup({
   }),
 })
 
--- colorscheme
-vim.cmd("colorscheme onedark")
+require('Comment').setup()
+
+require'nvim-treesitter.configs'.setup {
+  ensure_installed = { "c", "cpp", "kotlin", "rust"},
+  auto_install = true,
+  highlight = {
+    enable = true,
+  }
+}
