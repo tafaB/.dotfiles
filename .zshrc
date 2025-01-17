@@ -1,57 +1,36 @@
 export ZSH="$HOME/.oh-my-zsh"
-ZSH_THEME="simple"
 plugins=(git)
 source $ZSH/oh-my-zsh.sh
 alias cl='clear'
-alias cat='bat --theme Dracula'
-alias ls='ls --color=always'
-alias gg='cat ~/git_pass | pbcopy'
-findstring() {
-  if [ -z "$1" ]; then
-    echo "Usage: findstring <pattern>"
-  else
-    rg --color=always "$1"
-  fi
+alias cat='bat'
+
+function ff {
+  fzf \
+    --preview 'bat --theme=ansi --style=numbers --color=always {1}' \
+    --preview-window 'up,50%' \
+    --bind 'enter:execute(vim {1} && echo {1})'
 }
-findfile() {
-  if [ -z "$1" ]; then
-    echo "Usage: findfile <pattern>"
-  else
-    fdfind "$1" -p | rg --color=always "$1"
-  fi
+
+function fg {
+  local search_term="${*:-}"
+  rg "$search_term" --color=always --no-heading --line-number --column \
+    | fzf -d':' --ansi \
+    --preview "bat --theme=ansi -p --color=always {1} --highlight-line {2}" \
+    --preview-window 'up,50%,+{2}-5' \
+    --bind 'enter:execute(vim +{2} {1} && echo {1})'
 }
-tm() {
-  local sessions=$(tmux list-sessions -F \#S 2>/dev/null)
-  local selected_session=$(echo "$sessions" | fzf --print-query)
-  if [[ -z "$selected_session" ]]; then
-    echo "You did not select anything"
-    return
-  fi
-  selected_session=$(echo "$selected_session" | tr -d '\n')
-  if tmux has-session -t "$selected_session" 2>/dev/null; then
-    if [[ -n "$TMUX" ]]; then
-      tmux switch-client -t "$selected_session"
-    else
-      tmux attach-session -t "$selected_session"
-    fi
-  else
-    if [[ -n "$TMUX" ]]; then
-      tmux new-session -d -s "$selected_session"
-      tmux switch-client -t "$selected_session"
-    else
-      tmux new-session -s "$selected_session"
-    fi
+
+function att {
+  tmux attach-session -t main
+  if [ $? -eq 1 ]; then
+      echo "Starting new session"
+      tmux new-session -s main
   fi
 }
 
+PROMPT='%m%{$fg[green]%}%~%{$reset_color%}$ $(git_prompt_info)%{$reset_color%}'
+ZSH_THEME_GIT_PROMPT_PREFIX="%{$fg[blue]%}"
+ZSH_THEME_GIT_PROMPT_SUFFIX="%{$reset_color%} "
 
-export PATH="$PATH:/home/d3f4ult/.local/bin"
-
-
-
-export NVM_DIR="$HOME/.config/nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
 # may need : setxkbmap -device 12 -option altwin:swap_alt_win
 # setxkbmap -option
